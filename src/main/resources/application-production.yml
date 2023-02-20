@@ -6,6 +6,13 @@ spring:
     hibernate:
       ddl-auto: ${PERSISTENCE_DLL_AUTO:update}
     show-sql: ${PERSISTENCE_SHOW_SQL:true}
+    defer-datasource-initialization: true
+  sql:
+    init:
+      continue-on-error: true
+      mode: always
+      schema-locations: classpath:sql/schema.sql
+      data-locations: classpath:sql/data.sql
   datasource:
     modyo:
       url: ${PERSISTENCE_URL:jdbc:h2:mem:modyo_ms_schema;MODE=MYSQL}
