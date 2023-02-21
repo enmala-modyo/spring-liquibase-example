@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 class DependencyRuleTests {
 
-  private static final String rootPackageName = "com.modyo.example.springdbschema";
+  private static final String rootPackageName = "com.modyo.example.springliquibase";
   private static final String domainPackage = "domain";
   private static final String applicationPackage = "application";
   private static final String adaptersPackage = "adapters";
