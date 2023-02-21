@@ -1,16 +1,23 @@
 # Ejemplo modificación de esquema de base de datos y carga previa con Liquibase
 
-Este proyecto presenta un ejemplo sencillo en el que se utilizan las capacidades nativas
-de Spring para inicializar y realizar la carga previa de datos en el esquema de bases de datos.
+Este proyecto presenta un ejemplo sencillo en el que se utiliza Liquibase para
+inicializar, modificar y realizar la carga de datos en el esquema de bases de datos.
 
-Este mecanismo es muy básico y requiere de especial cuidado por parte del desarrollador para evitar errores.
+Este mecanismo es relativamente simple y solamente se requiere tener cuidado de marcar adecuadamente los
+changesets para que Liquibase pueda reconocer el orden correcto de aplicación.
 
-Cuando se utiliza este mecanismo se ejecutan dos scripts (podrían ser más):
-- schema.sql: Para modificar el esquema de la base de datos
-- data.sql: Para cargar datos
+En este proyecto se ha organizado la configuración de la siguiente forma:
+1. El archivo resources/db/changelog/db.changelog-master.yaml contiene la configuración base para Liquibase y
+referencia a los archivos en resources/db/changelog/changes.
+2. En resources/db/changelog/changes se han dispuesto varios archivos con los changesets.
+3. En los archivos application-certification.yml, application-staging.yml y application-production.yml
+se ha configurado el uso de Liquibase.
 
-En la configuración utilizada en el proyecto, estos scripts se ejecutan **después** de aplicar los cambios
-definidos en las entidades JPA, es decir, se usan como complemento a JPA.
+En esta configuración cada vez que el servicio se inicia Liquibase revisa en la base de datos
+cuál es el último changeset aplicado y aplica todos los siguientes (por eso es importante numerarlos correctamente).
+A continuación Hibernate verifica que el esquema de la base de datos sea consistente con lo definido en
+las clases de entidades JPA. Con esto, si existe alguna inconsistencia el servicio no se levantará y
+en el log se obtendrá el detalle del problema a corregir.
 
 ## Configuración
 Para habilitar esta funcionalidad debemos modificar el archivo donde definimos el datasource principal.
@@ -20,66 +27,36 @@ asumiendo que los cambios los queremos ejecutar en los tres ambientes.
 En todos los archivos debemos agregar:
 ```yaml
 spring:
+  liquibase:
+    enabled: true
   jpa:
-    defer-datasource-initialization: true
-  sql:
-    init:
-      continue-on-error: true
-      mode: always
-      schema-locations: classpath:sql/schema.sql
-      data-locations: classpath:sql/data.sql
+    properties:
+      hibernate:
+        dialect: ${PERSISTENCE_DIALECT:org.hibernate.dialect.MySQL5InnoDBDialect}
+    show-sql: ${PERSISTENCE_SHOW_SQL:true}
+  datasource:
+    modyo:
+      url: ${PERSISTENCE_URL:jdbc:h2:mem:modyo_ms_schema;MODE=MYSQL}
+      username: ${PERSISTENCE_USER:root}
+      password: ${PERSISTENCE_PASSWORD:}
+      ddl-auto: validate
+      hikari:
+        connectionTimeout: ${PERSISTENCE_CONEC_TIMEOUT:30000}
+        idleTimeout: ${PERSISTENCE_IDLE_TIMEOUT:600000}
+        maxLifetime: ${PERSISTENCE_MAX_LIFETIME:1800000}
+        maximumPoolSize: ${PERSISTENCE_MAX_POOL_SIZE:7}
 ```
-- `defer-datasource-initialization` se utiliza para indicar que los scripts se ejecutarán después
-de la configuración JPA (esto es importante para evitar errores).
-- `continue-on-error` se usa para indicar que si hay algún error en nuestros scripts el proceso continúe.
-Se puede cambiar a **false** para forzar que los scripts se ejecuten sin errores, sin embargo, mantenerlo en true
-puede ser útil (como veremos más adelante).
-- `mode` el modo **always** se usa para indicar que los scripts se deben ejecutar siempre, independiente
-del motor de bases de datos en uso. En condición normal estos scripts solamente se ejecutan para bases de datos
-en memoria (por ejemplo H2).
-- `schema-locations` y `data-locations` se usan para indicar donde están los scripts que utilizaremos para
-la inicialización de la base de datos. Si se definen no pueden estar vacíos, por lo que solamente se utilizará uno
-ese es el único que debe definirse.
+Aquí hemos configurado ddl-auto en `validate` y hemos habilitado Liquibase (esta habilitado en forma predeterminada,
+pero no perdemos nada teniendo el interruptor a la vista).
 
-## Consideraciones para schema.sql
-El script schema.sql se ejecutará inmediatamente terminado el proceso de inicialización JPA y
-tiene por objeto realizar ajustes a la estructura creada en forma automática.
-Es importante recordar que este script **se ejecuta cada vez que el servicio se inicia** por lo que
-si tenemos el servicio corriendo en contenedores cada vez que un nuevo contenedor se levante el script se ejecutará.
-Esto implica que debemos ser cuidadosos al momento de escribir nuestras sentencias SQL para no afectar a
-las instancias en ejecución.
+## Consideraciones para db.changelog-master.yaml
+El nombre del archivo utilizado es el predeterminado y si queremos podemos modificarlo en la configuración
+anterior.
 
-¿Qué precauciones tomar?
-- Usar `if exists` en las sentencias que lo permitan.
-- Verificar el comportamiento de nuestro script varias veces en nuestro ambiente local antes de desplegar algún cambio.
+Para mantener nuestra configuración ordenada hemos dejado todos los changesets en la carpeta changes, de otra forma
+tendríamos que agregarlos en el mismo archivo.
 
-Como en nuestra configuración marcamos `continue-on-error: true`, si se produce algún error durante
-la aplicación de los cambios, el proceso de inicialización del servicio continuará.
-
-¿Para que podemos usar este script?
-- Para eliminar objetos (tablas, columnas) que ya no necesitamos, por ejemplo debido a un cambio en la
-configuración de nuestras entidades JPA. Hay que recordar que JPA solamente realiza cambios incrementales (agrega cosas),
-nunca borra, por lo que si cambiamos el nombre de una columna, lo que sucederá realmente es que se creará una columna
-nueva sin datos. Entonces podría ser útil ejecutar un script que verifique si la columna antigua existe,
-copie los datos a la nueva y luego la elimine.
-- Para eliminar restricciones. Supongamos que inicialmente teníamos una columna marcada como NOT NULL, pero
-durante el desarrollo aparece un caso en el que es válido que la columna no tenga datos. En la
-entidad podemos eliminar la restricción, pero ese cambio no se aplicará a la BD. Para esto podemos utilizar este script.
-
-## Consideraciones para data.sql
-El comportamiento de data.sql es similar al de schema.sql, pero está pensado para la carga de datos,
-por lo tanto, se ejecuta después de schema.sql (cuando el esquema esta listo).
-
-Al igual que en el caso anterior, este script se ejecuta cada vez que una instancia de nuestro servicio
-se inicia, por lo que hay que tener especial cuidado de evitar insertar datos duplicados.
-
-Aquí, la configuración `continue-on-error: true` nos puede ser útil debido a que podemos confiar
-el control de la base de datos para evitar la inserción de datos duplicados para tablas de códigos
-(la clave la conocemos). Distinto es el caso de las tablas que usan identity para la clave primaria.
-En esos casos somos nosotros los responsables de tomar las medidas necesarias.
-
-¿Para que podemos usar este script?
-- Carga inicial de tablas de códigos (países, códigos telefónicos, estado civil, etc.)
-- Corregir/actualizar códigos cargados previamente.
-
+Como vemos en los ejemplos dentro de resources/db/changelog/changes podemos utilizar Liquibase para
+configurar la estructura de la base de datos, modificar objetos ya creados y para cargar o corregir
+datos en las tablas.
 
