@@ -9,7 +9,7 @@ plugins {
 
 sonarqube {
     properties {
-        property "sonar.projectKey", "enmala-modyo_spring-db-schema-example"
+        property "sonar.projectKey", "enmala-modyo_spring-liquibase-example"
         property "sonar.organization", "enmala"
         property "sonar.host.url", "https://sonarcloud.io"
         property "sonar.coverage.exclusions", "**/**Application*,**/*Config*,**/*MapperImpl*"
@@ -33,7 +33,7 @@ repositories {
     }
 }
 
-group = 'com.modyo.example.springdbschema'
+group = 'com.modyo.example.springliquibase'
 version = '1.0.0'
 
 apply plugin: 'java'
@@ -77,6 +77,7 @@ dependencies {
     implementation 'com.modyo.ms.commons:core:2.10.2-RELEASE'
     implementation 'com.modyo.ms.commons:http:2.10.2-RELEASE'
     implementation 'com.modyo.ms.commons:aws-api-gw:2.10.2-RELEASE'
+    implementation 'com.modyo.ms.commons:audit:2.10.2-RELEASE'
 
     // Swagger
     implementation 'io.springfox:springfox-boot-starter:3.0.0'
@@ -97,12 +98,14 @@ dependencies {
     runtimeOnly 'com.h2database:h2'
     runtimeOnly 'com.mysql:mysql-connector-j'
 
+    // Liquibase
+    implementation 'org.liquibase:liquibase-core'
+
     // Security Updates
     implementation 'org.yaml:snakeyaml:1.33'
     implementation 'org.bouncycastle:bcpkix-jdk15on:1.69'
     implementation 'org.bouncycastle:bcprov-jdk15on:1.69'
     implementation 'org.bouncycastle:bcutil-jdk15on:1.69'
-
 
     // Testing
     testImplementation('org.springframework.boot:spring-boot-starter-test')

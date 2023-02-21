@@ -10,5 +10,5 @@ spring:
       staging: datasources-staging
       production: datasources-production
   application:
-    name: spring-db-schema-example
+    name: spring-liquibase-example
     

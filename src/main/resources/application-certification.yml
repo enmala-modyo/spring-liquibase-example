@@ -1,24 +1,17 @@
 spring:
+  liquibase:
+    enabled: true
   jpa:
     properties:
       hibernate:
         dialect: ${PERSISTENCE_DIALECT:org.hibernate.dialect.MySQL5InnoDBDialect}
-    hibernate:
-      ddl-auto: ${PERSISTENCE_DLL_AUTO:update}
     show-sql: ${PERSISTENCE_SHOW_SQL:true}
-    defer-datasource-initialization: true
-  sql:
-    init:
-      continue-on-error: true
-      mode: always
-      schema-locations: classpath:sql/schema.sql
-      data-locations: classpath:sql/data.sql
   datasource:
     modyo:
       url: ${PERSISTENCE_URL:jdbc:h2:mem:modyo_ms_schema;MODE=MYSQL}
       username: ${PERSISTENCE_USER:root}
       password: ${PERSISTENCE_PASSWORD:}
-      ddl-auto: update
+      ddl-auto: validate
       hikari:
         connectionTimeout: ${PERSISTENCE_CONEC_TIMEOUT:30000}
         idleTimeout: ${PERSISTENCE_IDLE_TIMEOUT:600000}

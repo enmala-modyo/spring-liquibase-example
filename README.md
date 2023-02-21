@@ -1,4 +1,4 @@
-# Ejemplo modificación de esquema de base de datos y carga previa con Spring Boot
+# Ejemplo modificación de esquema de base de datos y carga previa con Liquibase
 
 Este proyecto presenta un ejemplo sencillo en el que se utilizan las capacidades nativas
 de Spring para inicializar y realizar la carga previa de datos en el esquema de bases de datos.

@@ -6,6 +6,7 @@ RUN yum update -y --security && \
    
 ENV STAGE_NAME certification
 WORKDIR /usr/app
-COPY build/libs/spring-db-schema-example-1.0.0.jar .
+COPY build/libs/spring-liquibase-example-1.0.0.jar .
 COPY extras/newrelic/ newrelic/
-CMD java -javaagent:newrelic/newrelic.jar -Dnewrelic.environment=$STAGE_NAME -XX:MaxRAMPercentage=75.0 -XX:MinRAMPercentage=75.0 -XX:InitialRAMPercentage=75.0 -jar -Dhttps.protocols=TLSv1.2 spring-db-schema-example-1.0.0.jar
+CMD java -javaagent:newrelic/newrelic.jar -Dnewrelic.environment=$STAGE_NAME -XX:MaxRAMPercentage=75.0 -XX:MinRAMPercentage=75.0 
+-XX:InitialRAMPercentage=75.0 -jar -Dhttps.protocols=TLSv1.2 spring-liquibase-example-1.0.0.jar
