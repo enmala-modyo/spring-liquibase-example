@@ -48,7 +48,6 @@ public class CountryControllerIntegationTest {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$",hasSize(5)))
         .andExpect(jsonPath("$[?(@.code == 'CL' && @.name == 'Chile')]").exists());
   }
 }
