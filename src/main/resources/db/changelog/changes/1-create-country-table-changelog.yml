@@ -8,13 +8,13 @@ databaseChangeLog:
             columns:
               - column:
                   name: code
-                  type: char(2)
+                  type: varchar(2)
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
                   name: iso3
-                  type: char(3)
+                  type: varchar(3)
               - column:
                   name: name
                   type: varchar(255)
