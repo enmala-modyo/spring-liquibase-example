@@ -1,7 +1,30 @@
 databaseChangeLog:
   - changeSet:
-      id: 1
+      id: 1.1
       author: enmala
+      dbms: mysql
+      changes:
+        - createTable:
+            tableName: Country
+            columns:
+              - column:
+                  name: code
+                  type: char(2)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: iso3
+                  type: char(3)
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 1.2
+      author: enmala
+      dbms: h2
       changes:
         - createTable:
             tableName: Country

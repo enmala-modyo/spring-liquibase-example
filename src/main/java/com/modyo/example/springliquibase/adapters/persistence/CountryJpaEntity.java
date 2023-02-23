@@ -14,13 +14,13 @@ import lombok.Setter;
 public class CountryJpaEntity {
 
   @Id
-  @Column(name = "code", nullable = false, length = 2)
+  @Column(name = "code", nullable = false, columnDefinition = "char(2)")
   private String id;
 
   @Column(name = "name", nullable = false)
   private String name;
 
-  @Column(name = "iso3", nullable = false, length = 3)
+  @Column(name = "iso3", nullable = false, columnDefinition = "char(3)")
   private String iso3;
 
 }
