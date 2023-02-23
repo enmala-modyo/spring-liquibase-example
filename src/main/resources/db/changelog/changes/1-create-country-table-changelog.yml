@@ -3,6 +3,11 @@ databaseChangeLog:
       id: 1.1
       author: enmala
       dbms: mysql
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: Country
       changes:
         - createTable:
             tableName: Country
