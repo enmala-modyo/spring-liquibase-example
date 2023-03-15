@@ -120,3 +120,17 @@ jobs:
         with:
           gradle-version: 6.9
           arguments: testIntegration --info
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'corretto' # See 'Supported distributions' for available options
+          java-version: '11'
+      - name: Generate Swagger file
+        run: |
+          jar=$(ls build/libs/*.jar | head -n1)
+          echo $jar
+          java -DSERVICE_PORT=8080 -jar $jar &
+          pid=$!
+          until $(curl --output /dev/null --silent --head --fail http://0.0.0.0:8080/actuator/health); do printf '.';sleep 5;done
+          curl -L http://0.0.0.0:8080/swagger-for-aws-api-gw > swagger.json
+          kill $pid
+          cat swagger.json
