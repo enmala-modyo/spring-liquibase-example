@@ -126,8 +126,7 @@ jobs:
           java-version: '11'
       - name: Generate Swagger file
         run: |
-          ls build/libs/*.jar
-          jar=$(ls build/libs/*.jar | head -n1)
+          jar=$(ls -S build/libs/*.jar | head -n1)
           echo $jar
           java -DSERVICE_PORT=8080 -jar $jar &
           pid=$!
